@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BlindVest — نظام المساعدة للمكفوفين</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+/* كامل الـ CSS الجميل الذي أرسلته سابقاً (تم اختصاره هنا للتوضيح) */
+:root{--brand-deep:#030b18;--red:#ff3d5a;--green:#00e676;--ml:#00b4d8;--mc:#7c4dff;--mr:#ff6d00;}
+* {box-sizing:border-box;margin:0;padding:0;}
+body {font-family:'Tajawal',sans-serif;background:#030b18;color:#e8f0fe;height:100vh;overflow:hidden;}
+.hdr {display:flex;align-items:center;justify-content:space-between;padding:0 22px;height:62px;background:#060f22;border-bottom:1px solid #132648;}
+.logo-name {font-size:24px;font-weight:900;background:linear-gradient(90deg,#fff,#00e5ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.main {display:grid;grid-template-columns:1fr 328px;gap:13px;padding:13px;height:calc(100vh - 62px);}
+.panel {background:#0c1a35;border:1px solid #132648;border-radius:18px;overflow:hidden;}
+.cam-wrap {flex:1;position:relative;background:#020810;}
+#camera-img {width:100%;height:100%;object-fit:contain;}
+.mgrid {display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:15px;}
+.mbtn {padding:18px;background:#0f2040;border:1px solid #132648;border-radius:12px;text-align:center;cursor:pointer;font-weight:700;}
+.mbtn.active {border-color:var(--ml);background:rgba(0,180,216,0.2);}
+.emg {display:none;background:#ff3d5a;color:#000;padding:16px;text-align:center;font-size:18px;font-weight:bold;}
+.emg.on {display:block;}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="logo-name">BlindVest</div>
+  <div style="color:#5b9bff;font-family:monospace;">نظام المساعدة للمكفوفين</div>
+</header>
+
+<div class="emg" id="emg">
+  ⚠ تنبيه طارئ — المستخدم يحتاج مساعدة فورية!
+  <button onclick="resolveEmg()" style="margin-top:10px;padding:10px 24px;background:#00e676;border:none;border-radius:8px;color:#000;font-weight:bold;">تم التعامل</button>
+</div>
+
+<div class="main">
+  <div class="panel">
+    <div style="padding:12px 18px;background:#09152d;border-bottom:1px solid #132648;">📹 بث الكاميرا المباشر</div>
+    <div class="cam-wrap">
+      <img id="camera-img" alt="Live">
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:12px;">
+    <div class="panel">
+      <div style="padding:12px 18px;background:#09152d;border-bottom:1px solid #132648;">■ التحكم بالاهتزاز</div>
+      <div class="mgrid">
+        <div class="mbtn" id="btn-left"  onmousedown="vibrate('left')"   onmouseup="stopVibrate('left')">يسار</div>
+        <div class="mbtn" id="btn-center" onmousedown="vibrate('center')" onmouseup="stopVibrate('center')">وسط</div>
+        <div class="mbtn" id="btn-right" onmousedown="vibrate('right')"  onmouseup="stopVibrate('right')">يمين</div>
+      </div>
+    </div>
+
+    <div class="panel" style="padding:15px;">
+      <h3>حالة النظام</h3>
+      <div id="status" style="padding:12px;background:#0f2040;border-radius:8px;margin-top:10px;">جاري الاتصال...</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+const socket = io();
+
+socket.on('video_frame', function(data){
+  document.getElementById('camera-img').src = 'data:image/jpeg;base64,' + data.frame;
+});
+
+socket.on('emergency_alert', function(){ document.getElementById('emg').classList.add('on'); });
+
+function vibrate(dir){ socket.emit('motor_command', {motor: dir}); }
+function stopVibrate(dir){ socket.emit('motor_command', {motor: dir}); }
+function resolveEmg(){ socket.emit('danger_resolved'); }
+</script>
+</body>
+</html>
